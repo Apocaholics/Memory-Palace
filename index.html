@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+  <header class="app-header">
+    <span class="app-name" data-text="appName"></span>
+    <button type="button" class="btn btn-secondary" id="header-new-deck" data-text="newDeck"></button>
+  </header>
+
+  <main class="app-main">
+    <section class="screen" data-screen="start" hidden>
+      <div class="screen-body">
+        <h1 data-text="appName"></h1>
+        <p class="lead" data-text="startLead"></p>
+        <ol class="steps">
+          <li data-text="step1"></li>
+          <li data-text="step2"></li>
+          <li data-text="step3"></li>
+          <li data-text="step4"></li>
+        </ol>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="start-new-deck" data-text="newDeck"></button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="layout" hidden></section>
+    <section class="screen" data-screen="memorize" hidden></section>
+    <section class="screen" data-screen="write" hidden></section>
+    <section class="screen" data-screen="check" hidden></section>
+    <section class="screen" data-screen="summary" hidden></section>
+  </main>
+</body>
+</html>
