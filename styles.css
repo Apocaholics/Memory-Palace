@@ -8,6 +8,8 @@
   --accent-text: #ffffff;
   --red-suit: #c62828;
   --black-suit: #1c1c1e;
+  --ok: #2e7d32;
+  --fail: #b3261e;
   --gap: 16px;
   --radius: 12px;
 }
@@ -131,6 +133,14 @@ h1 {
   color: var(--red-suit);
 }
 
+.card-back {
+  border: 8px solid var(--surface);
+  background:
+    repeating-linear-gradient(45deg, transparent 0 8px, rgb(255 255 255 / 0.18) 8px 10px),
+    repeating-linear-gradient(-45deg, transparent 0 8px, rgb(255 255 255 / 0.18) 8px 10px),
+    var(--accent);
+}
+
 .card-label {
   font-size: 26cqh;
   font-weight: 700;
@@ -198,6 +208,24 @@ h1 {
 .btn-primary {
   background: var(--accent);
   color: var(--accent-text);
+}
+
+.btn-mark {
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #ffffff;
+}
+
+.btn-ok {
+  background: var(--ok);
+}
+
+.btn-fail {
+  background: var(--fail);
+}
+
+.actions .btn-undo {
+  flex: 0 1 auto;
 }
 
 .btn-secondary {

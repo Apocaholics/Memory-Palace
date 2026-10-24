@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createDeck } from '../src/cards.js';
-import { reduce } from '../src/session.js';
+import { reduce, currentCheckCard } from '../src/session.js';
 
 const ORDER = createDeck();
 const START = { type: 'start', order: ORDER, id: 'id-1', createdAt: '2026-10-24T22:51:03.123Z' };
@@ -96,4 +96,81 @@ test('backToLayout і startWriting поза фазою memorize нічого н�
   }
   assert.equal(reduce(null, { type: 'backToLayout' }), null);
   assert.equal(reduce(null, { type: 'startWriting' }), null);
+});
+
+const markAll = (s, oks) => oks.reduce((acc, ok) => reduce(reduce(acc, { type: 'reveal' }), { type: 'mark', ok }), s);
+const checking = (overrides = {}) => session({ phase: 'check', layoutIndex: 51, ...overrides });
+
+test('startCheck: із write у check з порожніми позначками й закритою картою', () => {
+  const s = reduce(session({ phase: 'write', layoutIndex: 51 }), { type: 'startCheck' });
+  assert.equal(s.phase, 'check');
+  assert.deepEqual(s.marks, []);
+  assert.equal(s.revealed, false);
+});
+
+test('startCheck поза фазою write нічого не робить', () => {
+  for (const phase of ['layout', 'memorize', 'check', 'summary']) {
+    const s = session({ phase, layoutIndex: 51 });
+    assert.equal(reduce(s, { type: 'startCheck' }), s);
+  }
+  assert.equal(reduce(null, { type: 'startCheck' }), null);
+});
+
+test('reveal: відкриває поточну карту; повторно чи поза check нічого не робить', () => {
+  assert.equal(reduce(checking(), { type: 'reveal' }).revealed, true);
+  const open = checking({ revealed: true });
+  assert.equal(reduce(open, { type: 'reveal' }), open);
+  const write = session({ phase: 'write', layoutIndex: 51 });
+  assert.equal(reduce(write, { type: 'reveal' }), write);
+});
+
+test('mark: записує позначку й закриває наступну позицію', () => {
+  const s = reduce(checking({ revealed: true }), { type: 'mark', ok: false });
+  assert.deepEqual(s.marks, [false]);
+  assert.equal(s.revealed, false);
+  assert.equal(s.phase, 'check');
+});
+
+test('mark без reveal нічого не робить (подвійний тап не ставить другої позначки)', () => {
+  const closed = checking({ marks: [true] });
+  assert.equal(reduce(closed, { type: 'mark', ok: true }), closed);
+  const once = reduce(checking({ revealed: true }), { type: 'mark', ok: true });
+  assert.deepEqual(reduce(once, { type: 'mark', ok: true }).marks, [true]);
+});
+
+test('mark: 52-га позначка переводить у summary', () => {
+  const s51 = markAll(checking(), Array(51).fill(true));
+  assert.equal(s51.phase, 'check');
+  const done = markAll(s51, [false]);
+  assert.equal(done.phase, 'summary');
+  assert.equal(done.marks.length, 52);
+  assert.equal(done.revealed, false);
+  assert.equal(reduce(done, { type: 'reveal' }), done);
+  assert.equal(reduce(done, { type: 'mark', ok: true }), done);
+});
+
+test('undo: прибирає останню позначку й відкриває попередню карту', () => {
+  const s = reduce(checking({ marks: [true, false] }), { type: 'undo' });
+  assert.deepEqual(s.marks, [true]);
+  assert.equal(s.revealed, true);
+});
+
+test('undo кілька разів поспіль до позиції 1', () => {
+  let s = markAll(checking(), [true, false, true]);
+  for (let i = 0; i < 3; i++) s = reduce(s, { type: 'undo' });
+  assert.deepEqual(s.marks, []);
+  assert.equal(s.revealed, true);
+  assert.equal(currentCheckCard(s), ORDER[0]);
+});
+
+test('undo з порожніми позначками чи поза check нічого не робить', () => {
+  const empty = checking({ revealed: true });
+  assert.equal(reduce(empty, { type: 'undo' }), empty);
+  const summary = session({ phase: 'summary', layoutIndex: 51, marks: Array(52).fill(true) });
+  assert.equal(reduce(summary, { type: 'undo' }), summary);
+});
+
+test('currentCheckCard = order[marks.length]', () => {
+  assert.equal(currentCheckCard(checking()), ORDER[0]);
+  assert.equal(currentCheckCard(checking({ marks: [true, false, true] })), ORDER[3]);
 });
