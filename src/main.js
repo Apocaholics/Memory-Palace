@@ -45,7 +45,44 @@ function onAction(action) {
   dispatch(action);
 }
 
+// Під час розкладки й перевірки екран не гасне. Без API чи при відмові браузера працюємо без цього.
+const AWAKE_PHASES = ['layout', 'check'];
+let wakeLock = null;
+let wakeLockRequested = false;
+
+const wakeLockWanted = () => AWAKE_PHASES.includes(session?.phase) && document.visibilityState === 'visible';
+
+function releaseWakeLock() {
+  wakeLock?.release().catch(() => {});
+  wakeLock = null;
+}
+
+async function syncWakeLock() {
+  if (!wakeLockWanted()) {
+    releaseWakeLock();
+    return;
+  }
+  if (wakeLock || wakeLockRequested || !navigator.wakeLock) return;
+  wakeLockRequested = true;
+  try {
+    const lock = await navigator.wakeLock.request('screen');
+    // Браузер сам відпускає lock, коли вкладка ховається; visibilitychange запитає його знову.
+    lock.addEventListener('release', () => {
+      if (wakeLock === lock) wakeLock = null;
+    });
+    wakeLock = lock;
+    if (!wakeLockWanted()) releaseWakeLock();
+  } catch {
+    // Відмова (енергозбереження, політика браузера) не заважає тренуванню.
+  } finally {
+    wakeLockRequested = false;
+  }
+}
+
 onTransition((prev, next) => (next ? store.save(next) : store.clear()));
+onTransition(syncWakeLock);
+document.addEventListener('visibilitychange', syncWakeLock);
 
 init(onAction);
 render(session);
+syncWakeLock();
