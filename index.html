@@ -26,11 +26,21 @@
         </ol>
       </div>
       <div class="actions">
-        <button type="button" class="btn btn-primary" id="start-new-deck" data-text="newDeck"></button>
+        <button type="button" class="btn btn-primary" data-action="newDeck" data-text="newDeck"></button>
       </div>
     </section>
 
-    <section class="screen" data-screen="layout" hidden></section>
+    <section class="screen" data-screen="layout" hidden>
+      <div class="screen-body card-stage">
+        <p class="position" id="layout-position"></p>
+        <div class="card-slot" id="layout-card"></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-secondary" data-action="back" data-text="back"></button>
+        <button type="button" class="btn btn-primary" data-action="next" data-text="next"></button>
+        <button type="button" class="btn btn-primary" data-action="layoutDone" data-text="layoutDone"></button>
+      </div>
+    </section>
     <section class="screen" data-screen="memorize" hidden></section>
     <section class="screen" data-screen="write" hidden></section>
     <section class="screen" data-screen="check" hidden></section>
