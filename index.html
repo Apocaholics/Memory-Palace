@@ -10,7 +10,7 @@
 <body>
   <header class="app-header">
     <span class="app-name" data-text="appName"></span>
-    <button type="button" class="btn btn-secondary" id="header-new-deck" data-text="newDeck"></button>
+    <button type="button" class="btn btn-secondary" data-action="newDeck" data-text="newDeck"></button>
   </header>
 
   <main class="app-main">
@@ -83,5 +83,15 @@
       </div>
     </section>
   </main>
+
+  <dialog class="confirm" id="confirm-new-deck">
+    <form method="dialog">
+      <p data-text="confirmNewDeck"></p>
+      <div class="actions">
+        <button type="submit" class="btn btn-secondary" value="cancel" data-text="cancel" autofocus></button>
+        <button type="submit" class="btn btn-primary" value="yes" data-text="yes"></button>
+      </div>
+    </form>
+  </dialog>
 </body>
 </html>

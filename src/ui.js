@@ -27,12 +27,18 @@ const TEXT = {
   undo: 'Скасувати',
   errorsTitle: 'Помилки',
   noErrors: 'Без помилок',
+  confirmNewDeck: 'Почати нову колоду? Поточна сесія буде втрачена.',
+  yes: 'Так',
+  cancel: 'Скасувати',
 };
 
 const $ = (selector) => document.querySelector(selector);
 
 // Кнопка, що щойно з'явилась під пальцем, не приймає другий тап подвійного натискання.
 const DOUBLE_TAP_MS = 400;
+// Посеред сесії «Нова колода» спершу питає підтвердження; на «Старті» й підсумку ні.
+const SCREENS_WITHOUT_CONFIRM = ['start', 'summary'];
+let currentScreen = 'start';
 const shownAt = new WeakMap();
 
 function setHidden(el, hidden) {
@@ -61,12 +67,22 @@ export function init(onAction) {
     if (event.detail > 0 && justShown(button)) return;
     const action = { type: button.dataset.action };
     if (button.dataset.ok) action.ok = button.dataset.ok === 'true';
+    if (action.type === 'newDeck' && !SCREENS_WITHOUT_CONFIRM.includes(currentScreen)) {
+      $('#confirm-new-deck').showModal();
+      return;
+    }
     onAction(action);
+  });
+  const dialog = $('#confirm-new-deck');
+  dialog.addEventListener('close', () => {
+    if (dialog.returnValue === 'yes') onAction({ type: 'newDeck' });
+    dialog.returnValue = '';
   });
 }
 
 export function render(session) {
   const screen = session ? session.phase : 'start';
+  currentScreen = screen;
   for (const section of document.querySelectorAll('[data-screen]')) {
     setHidden(section, section.dataset.screen !== screen);
   }

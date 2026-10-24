@@ -210,6 +210,24 @@ h2 {
   color: var(--red-suit);
 }
 
+.confirm {
+  width: min(100% - 32px, 400px);
+  padding: 20px;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.confirm::backdrop {
+  background: rgb(0 0 0 / 0.45);
+}
+
+.confirm p {
+  margin: 0 0 var(--gap);
+  font-size: 1.125rem;
+}
+
 .instruction {
   margin: 0;
   font-size: 1.25rem;
