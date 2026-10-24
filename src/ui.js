@@ -39,6 +39,17 @@ const DOUBLE_TAP_MS = 400;
 // Посеред сесії «Нова колода» спершу питає підтвердження; на «Старті» й підсумку ні.
 const SCREENS_WITHOUT_CONFIRM = ['start', 'summary'];
 let currentScreen = 'start';
+
+// Клавіша натискає відповідну кнопку поточного екрана, лише якщо та видима й активна.
+const NEXT_OR_REVEAL = '[data-action="next"], [data-action="reveal"]';
+const KEY_BUTTONS = {
+  ArrowRight: NEXT_OR_REVEAL,
+  ' ': NEXT_OR_REVEAL,
+  ArrowLeft: '[data-action="back"]',
+  1: '[data-action="mark"][data-ok="true"]',
+  2: '[data-action="mark"][data-ok="false"]',
+  Backspace: '[data-action="undo"]',
+};
 const shownAt = new WeakMap();
 
 function setHidden(el, hidden) {
@@ -77,6 +88,17 @@ export function init(onAction) {
   dialog.addEventListener('close', () => {
     if (dialog.returnValue === 'yes') onAction({ type: 'newDeck' });
     dialog.returnValue = '';
+  });
+  document.addEventListener('keydown', (event) => {
+    const selector = KEY_BUTTONS[event.key];
+    if (!selector || event.ctrlKey || event.altKey || event.metaKey || dialog.open) return;
+    const button = [...document.querySelectorAll(`[data-screen="${currentScreen}"] :is(${selector})`)].find(
+      (candidate) => !candidate.hidden && !candidate.disabled,
+    );
+    if (!button) return;
+    // Без цього Пробіл ще й натиснув би кнопку у фокусі, а Пробіл чи Backspace прокрутили б сторінку.
+    event.preventDefault();
+    button.click();
   });
 }
 
