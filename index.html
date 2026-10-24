@@ -71,7 +71,17 @@
         <button type="button" class="btn btn-mark btn-fail" data-action="mark" data-ok="false" data-text="markFail" data-label="markFailLabel"></button>
       </div>
     </section>
-    <section class="screen" data-screen="summary" hidden></section>
+    <section class="screen" data-screen="summary" hidden>
+      <div class="screen-body">
+        <p class="score" id="summary-score"></p>
+        <h2 data-text="errorsTitle"></h2>
+        <p id="summary-no-errors" data-text="noErrors"></p>
+        <ul class="errors" id="summary-errors"></ul>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" data-action="newDeck" data-text="newDeck"></button>
+      </div>
+    </section>
   </main>
 </body>
 </html>

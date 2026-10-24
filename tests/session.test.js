@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createDeck } from '../src/cards.js';
-import { reduce, currentCheckCard } from '../src/session.js';
+import { reduce, currentCheckCard, score, errorPositions } from '../src/session.js';
 
 const ORDER = createDeck();
 const START = { type: 'start', order: ORDER, id: 'id-1', createdAt: '2026-10-24T22:51:03.123Z' };
@@ -173,4 +173,35 @@ test('undo з порожніми позначками чи поза check ніч
 test('currentCheckCard = order[marks.length]', () => {
   assert.equal(currentCheckCard(checking()), ORDER[0]);
   assert.equal(currentCheckCard(checking({ marks: [true, false, true] })), ORDER[3]);
+});
+
+const summary = (marks) => session({ phase: 'summary', layoutIndex: 51, marks });
+
+test('score і errorPositions: змішаний випадок', () => {
+  const marks = Array(52).fill(true);
+  marks[11] = false;
+  marks[2] = false;
+  marks[51] = false;
+  const s = summary(marks);
+  assert.equal(score(s), 49);
+  assert.deepEqual(errorPositions(s), [3, 12, 52]);
+});
+
+test('усі 52 правильно: 52 / 52 і без помилок', () => {
+  const s = summary(Array(52).fill(true));
+  assert.equal(score(s), 52);
+  assert.deepEqual(errorPositions(s), []);
+});
+
+test('усі 52 помилкові: 0 / 52 і список із 52 позицій', () => {
+  const s = summary(Array(52).fill(false));
+  assert.equal(score(s), 0);
+  assert.deepEqual(errorPositions(s), Array.from({ length: 52 }, (_, i) => i + 1));
+});
+
+test('reset з будь-якої фази повертає null', () => {
+  for (const phase of ['layout', 'memorize', 'write', 'check', 'summary']) {
+    assert.equal(reduce(session({ phase }), { type: 'reset' }), null);
+  }
+  assert.equal(reduce(null, { type: 'reset' }), null);
 });

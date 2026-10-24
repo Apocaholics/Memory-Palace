@@ -54,9 +54,18 @@ export function reduce(session, action) {
       if (session?.phase !== 'check' || session.marks.length === 0) return session;
       return { ...session, marks: session.marks.slice(0, -1), revealed: true };
 
+    case 'reset':
+      return null;
+
     default:
       return session;
   }
 }
 
 export const currentCheckCard = (session) => session.order[session.marks.length];
+
+export const score = (session) => session.marks.filter(Boolean).length;
+
+// Номери позицій (з 1) з позначкою ✗, за зростанням.
+export const errorPositions = (session) =>
+  session.marks.flatMap((ok, index) => (ok ? [] : [index + 1]));

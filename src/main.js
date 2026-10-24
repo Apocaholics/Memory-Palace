@@ -13,6 +13,7 @@ function dispatch(action) {
 
 function onAction(action) {
   if (action.type === 'newDeck') {
+    dispatch({ type: 'reset' });
     dispatch({
       type: 'start',
       order: shuffle(createDeck()),

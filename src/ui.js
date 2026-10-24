@@ -1,5 +1,5 @@
 import { formatCard, isRed } from './cards.js';
-import { currentCheckCard } from './session.js';
+import { currentCheckCard, errorPositions, score } from './session.js';
 
 const TEXT = {
   appName: 'Палац пам\'яті',
@@ -25,6 +25,8 @@ const TEXT = {
   markFail: '✗',
   markFailLabel: 'Помилка',
   undo: 'Скасувати',
+  errorsTitle: 'Помилки',
+  noErrors: 'Без помилок',
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -58,6 +60,7 @@ export function render(session) {
   }
   if (screen === 'layout') renderLayout(session);
   if (screen === 'check') renderCheck(session);
+  if (screen === 'summary') renderSummary(session);
 }
 
 function renderLayout(session) {
@@ -82,6 +85,23 @@ function renderCheck(session) {
     button.hidden = !revealed;
   }
   $('[data-screen="check"] [data-action="undo"]').disabled = marks.length === 0;
+}
+
+function renderSummary(session) {
+  const errors = errorPositions(session);
+  $('#summary-score').textContent = `${score(session)} / ${session.order.length}`;
+  $('#summary-no-errors').hidden = errors.length > 0;
+  $('#summary-errors').replaceChildren(
+    ...errors.map((position) => {
+      const code = session.order[position - 1];
+      const item = document.createElement('li');
+      const card = document.createElement('span');
+      card.className = isRed(code) ? 'red' : '';
+      card.textContent = formatCard(code);
+      item.append(`№${position} — `, card);
+      return item;
+    }),
+  );
 }
 
 function cardBack() {
