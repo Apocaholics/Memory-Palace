@@ -31,6 +31,20 @@ const TEXT = {
 
 const $ = (selector) => document.querySelector(selector);
 
+// Кнопка, що щойно з'явилась під пальцем, не приймає другий тап подвійного натискання.
+const DOUBLE_TAP_MS = 400;
+const shownAt = new WeakMap();
+
+function setHidden(el, hidden) {
+  if (el.hidden && !hidden) shownAt.set(el, performance.now());
+  el.hidden = hidden;
+}
+
+function justShown(button) {
+  const now = performance.now();
+  return [button, button.closest('[data-screen]')].some((el) => el && now - (shownAt.get(el) ?? -Infinity) < DOUBLE_TAP_MS);
+}
+
 // Кнопки з data-action перетворюються на дії; що з ними робити, вирішує main.js.
 export function init(onAction) {
   document.title = TEXT.appName;
@@ -43,6 +57,8 @@ export function init(onAction) {
   document.addEventListener('click', (event) => {
     const button = event.target.closest('button[data-action]');
     if (!button || button.disabled) return;
+    // detail > 0 лише для кліку вказівником; клавіатура захисту не потребує.
+    if (event.detail > 0 && justShown(button)) return;
     const action = { type: button.dataset.action };
     if (button.dataset.ok) action.ok = button.dataset.ok === 'true';
     onAction(action);
@@ -52,7 +68,7 @@ export function init(onAction) {
 export function render(session) {
   const screen = session ? session.phase : 'start';
   for (const section of document.querySelectorAll('[data-screen]')) {
-    section.hidden = section.dataset.screen !== screen;
+    setHidden(section, section.dataset.screen !== screen);
   }
   // Карти з інших екранів не лишаються в DOM навіть у прихованих секціях.
   for (const slot of document.querySelectorAll('.card-slot')) {
@@ -70,8 +86,8 @@ function renderLayout(session) {
   $('#layout-position').textContent = `${index + 1} / ${total}`;
   $('#layout-card').replaceChildren(cardFace(session.order[index]));
   $('[data-screen="layout"] [data-action="back"]').disabled = index === 0;
-  $('[data-screen="layout"] [data-action="next"]').hidden = isLast;
-  $('[data-screen="layout"] [data-action="layoutDone"]').hidden = !isLast;
+  setHidden($('[data-screen="layout"] [data-action="next"]'), isLast);
+  setHidden($('[data-screen="layout"] [data-action="layoutDone"]'), !isLast);
 }
 
 // Поки карта закрита, її лиця немає в DOM: рендериться лише сорочка.
@@ -80,9 +96,9 @@ function renderCheck(session) {
   const { revealed, marks } = session;
   $('#check-position').textContent = `${TEXT.position} ${marks.length + 1} / ${total}`;
   $('#check-card').replaceChildren(revealed ? cardFace(currentCheckCard(session)) : cardBack());
-  $('[data-screen="check"] [data-action="reveal"]').hidden = revealed;
+  setHidden($('[data-screen="check"] [data-action="reveal"]'), revealed);
   for (const button of document.querySelectorAll('[data-screen="check"] [data-action="mark"]')) {
-    button.hidden = !revealed;
+    setHidden(button, !revealed);
   }
   $('[data-screen="check"] [data-action="undo"]').disabled = marks.length === 0;
 }
