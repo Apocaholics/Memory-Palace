@@ -164,6 +164,15 @@ h1 {
   flex: 1;
 }
 
+.actions-stack {
+  flex-direction: column;
+}
+
+.instruction {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
 .btn {
   min-width: 48px;
   min-height: 48px;

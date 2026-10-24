@@ -27,6 +27,14 @@ export function reduce(session, action) {
       if (session?.phase !== 'layout' || session.layoutIndex !== session.order.length - 1) return session;
       return { ...session, phase: 'memorize' };
 
+    case 'backToLayout':
+      if (session?.phase !== 'memorize') return session;
+      return { ...session, phase: 'layout', layoutIndex: session.order.length - 1 };
+
+    case 'startWriting':
+      if (session?.phase !== 'memorize') return session;
+      return { ...session, phase: 'write' };
+
     default:
       return session;
   }

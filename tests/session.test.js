@@ -76,3 +76,24 @@ test('невідома дія повертає ту саму сесію', () => 
   const s = session();
   assert.equal(reduce(s, { type: 'unknown' }), s);
 });
+
+test('backToLayout: із memorize на позицію 52 розкладки', () => {
+  const s = reduce(session({ phase: 'memorize', layoutIndex: 51 }), { type: 'backToLayout' });
+  assert.equal(s.phase, 'layout');
+  assert.equal(s.layoutIndex, 51);
+  assert.equal(reduce(s, { type: 'back' }).layoutIndex, 50);
+});
+
+test('startWriting: із memorize у write', () => {
+  assert.equal(reduce(session({ phase: 'memorize', layoutIndex: 51 }), { type: 'startWriting' }).phase, 'write');
+});
+
+test('backToLayout і startWriting поза фазою memorize нічого не роблять', () => {
+  for (const phase of ['layout', 'write', 'check', 'summary']) {
+    const s = session({ phase, layoutIndex: 51 });
+    assert.equal(reduce(s, { type: 'backToLayout' }), s);
+    assert.equal(reduce(s, { type: 'startWriting' }), s);
+  }
+  assert.equal(reduce(null, { type: 'backToLayout' }), null);
+  assert.equal(reduce(null, { type: 'startWriting' }), null);
+});

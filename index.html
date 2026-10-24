@@ -41,8 +41,24 @@
         <button type="button" class="btn btn-primary" data-action="layoutDone" data-text="layoutDone"></button>
       </div>
     </section>
-    <section class="screen" data-screen="memorize" hidden></section>
-    <section class="screen" data-screen="write" hidden></section>
+    <section class="screen" data-screen="memorize" hidden>
+      <div class="screen-body">
+        <p class="instruction" data-text="memorizeText"></p>
+      </div>
+      <div class="actions actions-stack">
+        <button type="button" class="btn btn-secondary" data-action="backToLayout" data-text="backToLayout"></button>
+        <button type="button" class="btn btn-primary" data-action="startWriting" data-text="startWriting"></button>
+      </div>
+    </section>
+
+    <section class="screen" data-screen="write" hidden>
+      <div class="screen-body">
+        <p class="instruction" data-text="writeText"></p>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" data-action="startCheck" data-text="startCheck"></button>
+      </div>
+    </section>
     <section class="screen" data-screen="check" hidden></section>
     <section class="screen" data-screen="summary" hidden></section>
   </main>

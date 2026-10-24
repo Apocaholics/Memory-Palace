@@ -11,6 +11,11 @@ const TEXT = {
   back: 'Назад',
   next: 'Далі',
   layoutDone: 'Колода складена',
+  memorizeText: 'Гортайте колоду й запам\'ятовуйте. Коли будете готові записувати, натисніть кнопку.',
+  backToLayout: 'Повернутися до розкладки',
+  startWriting: 'Записую',
+  writeText: 'Запишіть колоду з пам\'яті на папері. Коли закінчите, натисніть «Перевірити».',
+  startCheck: 'Перевірити',
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -31,6 +36,10 @@ export function render(session) {
   const screen = session ? session.phase : 'start';
   for (const section of document.querySelectorAll('[data-screen]')) {
     section.hidden = section.dataset.screen !== screen;
+  }
+  // Карти з інших екранів не лишаються в DOM навіть у прихованих секціях.
+  for (const slot of document.querySelectorAll('.card-slot')) {
+    slot.replaceChildren();
   }
   if (screen === 'layout') renderLayout(session);
 }
