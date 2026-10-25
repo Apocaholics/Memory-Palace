@@ -30,8 +30,6 @@ export function validateSession(value) {
     isValidOrder(value.order) &&
     PHASES.includes(value.phase) &&
     isIndex(value.layoutIndex, value.order.length) &&
-    typeof value.revealed === 'boolean' &&
-    (!value.revealed || value.phase === 'check') &&
     isValidMarks(value);
   return valid ? value : null;
 }

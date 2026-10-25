@@ -133,14 +133,6 @@ h1 {
   color: var(--red-suit);
 }
 
-.card-back {
-  border: 8px solid var(--surface);
-  background:
-    repeating-linear-gradient(45deg, transparent 0 8px, rgb(255 255 255 / 0.18) 8px 10px),
-    repeating-linear-gradient(-45deg, transparent 0 8px, rgb(255 255 255 / 0.18) 8px 10px),
-    var(--accent);
-}
-
 .card-label {
   font-size: 26cqh;
   font-weight: 700;

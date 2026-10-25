@@ -33,8 +33,8 @@ const VALID = {
   layout: run('next'),
   memorize: run(...toLast, 'layoutDone'),
   write: run(...toLast, 'layoutDone', 'startWriting'),
-  checkClosed: run(...toLast, 'layoutDone', 'startWriting', 'startCheck', 'reveal', { type: 'mark', ok: false }),
-  checkOpen: run(...toLast, 'layoutDone', 'startWriting', 'startCheck', 'reveal'),
+  checkStart: run(...toLast, 'layoutDone', 'startWriting', 'startCheck'),
+  check: run(...toLast, 'layoutDone', 'startWriting', 'startCheck', { type: 'mark', ok: false }),
   summary: { ...run(...toLast, 'layoutDone', 'startWriting', 'startCheck'), phase: 'summary', marks: Array(52).fill(true) },
 };
 
@@ -45,13 +45,14 @@ test('validateSession приймає валідну сесію кожної фа
 });
 
 test('validateSession відкидає пошкоджені дані', () => {
-  const base = VALID.checkClosed;
+  const base = VALID.check;
   const swapped = [...ORDER];
   swapped[1] = swapped[0];
   const invalid = {
     'не обʼєкт': 'session',
     null: null,
-    'чужа версія': { ...base, version: 2 },
+    'чужа версія': { ...base, version: 3 },
+    'стара версія 1 з revealed': { ...base, version: 1, revealed: false },
     'без id': { ...base, id: undefined },
     'без createdAt': { ...base, createdAt: 5 },
     'неповна колода': { ...base, order: ORDER.slice(1) },
@@ -61,12 +62,10 @@ test('validateSession відкидає пошкоджені дані', () => {
     'layoutIndex > 51': { ...base, layoutIndex: 52 },
     'layoutIndex < 0': { ...base, layoutIndex: -1 },
     'layoutIndex дробовий': { ...base, layoutIndex: 1.5 },
-    'revealed не boolean': { ...base, revealed: 'yes' },
     'marks не масив': { ...base, marks: 'true' },
     'marks не boolean': { ...base, marks: [1] },
     'забагато marks у check': { ...base, marks: Array(52).fill(true) },
     'неповні marks у summary': { ...VALID.summary, marks: Array(51).fill(true) },
-    'revealed поза check': { ...VALID.layout, revealed: true },
   };
   for (const [name, value] of Object.entries(invalid)) {
     assert.equal(validateSession(value), null, name);
@@ -75,10 +74,10 @@ test('validateSession відкидає пошкоджені дані', () => {
 
 test('save і load: сесія переживає перезавантаження під ключем mpc.session', () => {
   const storage = fakeStorage();
-  createSessionStore(storage).save(VALID.checkOpen);
+  createSessionStore(storage).save(VALID.check);
   assert.equal(STORAGE_KEY, 'mpc.session');
   assert.ok(storage.data.has('mpc.session'));
-  assert.deepEqual(createSessionStore(storage).load(), VALID.checkOpen);
+  assert.deepEqual(createSessionStore(storage).load(), VALID.check);
 });
 
 test('load без збереженої сесії повертає null', () => {
@@ -86,7 +85,7 @@ test('load без збереженої сесії повертає null', () => 
 });
 
 test('пошкоджений JSON чи невалідна сесія: null і очищення сховища', () => {
-  for (const raw of ['{not json', JSON.stringify({ ...VALID.layout, version: 2 }), JSON.stringify({ ...VALID.layout, order: ORDER.slice(1) })]) {
+  for (const raw of ['{not json', JSON.stringify({ ...VALID.layout, version: 1, revealed: false }), JSON.stringify({ ...VALID.layout, order: ORDER.slice(1) })]) {
     const storage = fakeStorage({ [STORAGE_KEY]: raw });
     assert.equal(createSessionStore(storage).load(), null);
     assert.equal(storage.data.has(STORAGE_KEY), false);

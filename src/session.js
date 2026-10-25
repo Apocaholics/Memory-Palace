@@ -1,4 +1,5 @@
-export const SESSION_VERSION = 1;
+// Версія 2: перевірка без кроку «Відкрити», поля revealed більше немає.
+export const SESSION_VERSION = 2;
 
 export function reduce(session, action) {
   switch (action.type) {
@@ -11,7 +12,6 @@ export function reduce(session, action) {
         order: action.order,
         phase: 'layout',
         layoutIndex: 0,
-        revealed: false,
         marks: [],
       };
 
@@ -37,22 +37,18 @@ export function reduce(session, action) {
 
     case 'startCheck':
       if (session?.phase !== 'write') return session;
-      return { ...session, phase: 'check', marks: [], revealed: false };
-
-    case 'reveal':
-      if (session?.phase !== 'check' || session.revealed) return session;
-      return { ...session, revealed: true };
+      return { ...session, phase: 'check', marks: [] };
 
     case 'mark': {
-      if (session?.phase !== 'check' || !session.revealed) return session;
+      if (session?.phase !== 'check') return session;
       const marks = [...session.marks, action.ok];
       const phase = marks.length === session.order.length ? 'summary' : 'check';
-      return { ...session, marks, revealed: false, phase };
+      return { ...session, marks, phase };
     }
 
     case 'undo':
       if (session?.phase !== 'check' || session.marks.length === 0) return session;
-      return { ...session, marks: session.marks.slice(0, -1), revealed: true };
+      return { ...session, marks: session.marks.slice(0, -1) };
 
     case 'reset':
       return null;

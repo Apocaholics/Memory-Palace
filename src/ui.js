@@ -18,8 +18,6 @@ const TEXT = {
   writeText: 'Запишіть колоду з пам\'яті на папері. Коли закінчите, натисніть «Перевірити».',
   startCheck: 'Перевірити',
   position: 'Позиція',
-  cardBack: 'Карта сорочкою догори',
-  reveal: 'Відкрити',
   markOk: '✓',
   markOkLabel: 'Збіглося',
   markFail: '✗',
@@ -41,10 +39,9 @@ const SCREENS_WITHOUT_CONFIRM = ['start', 'summary'];
 let currentScreen = 'start';
 
 // Клавіша натискає відповідну кнопку поточного екрана, лише якщо та видима й активна.
-const NEXT_OR_REVEAL = '[data-action="next"], [data-action="reveal"]';
 const KEY_BUTTONS = {
-  ArrowRight: NEXT_OR_REVEAL,
-  ' ': NEXT_OR_REVEAL,
+  ArrowRight: '[data-action="next"]',
+  ' ': '[data-action="next"]',
   ArrowLeft: '[data-action="back"]',
   1: '[data-action="mark"][data-ok="true"]',
   2: '[data-action="mark"][data-ok="false"]',
@@ -52,8 +49,12 @@ const KEY_BUTTONS = {
 };
 const shownAt = new WeakMap();
 
+function armDoubleTapGuard(el) {
+  shownAt.set(el, performance.now());
+}
+
 function setHidden(el, hidden) {
-  if (el.hidden && !hidden) shownAt.set(el, performance.now());
+  if (el.hidden && !hidden) armDoubleTapGuard(el);
   el.hidden = hidden;
 }
 
@@ -128,15 +129,15 @@ function renderLayout(session) {
   setHidden($('[data-screen="layout"] [data-action="layoutDone"]'), !isLast);
 }
 
-// Поки карта закрита, її лиця немає в DOM: рендериться лише сорочка.
+// У DOM лише поточна карта: наступна з'являється тільки після позначки поточної.
 function renderCheck(session) {
   const total = session.order.length;
-  const { revealed, marks } = session;
+  const { marks } = session;
   $('#check-position').textContent = `${TEXT.position} ${marks.length + 1} / ${total}`;
-  $('#check-card').replaceChildren(revealed ? cardFace(currentCheckCard(session)) : cardBack());
-  setHidden($('[data-screen="check"] [data-action="reveal"]'), revealed);
+  $('#check-card').replaceChildren(cardFace(currentCheckCard(session)));
+  // ✓/✗ лишаються на місці, тож без цього подвійний тап позначив би й наступну карту.
   for (const button of document.querySelectorAll('[data-screen="check"] [data-action="mark"]')) {
-    setHidden(button, !revealed);
+    armDoubleTapGuard(button);
   }
   $('[data-screen="check"] [data-action="undo"]').disabled = marks.length === 0;
 }
@@ -156,14 +157,6 @@ function renderSummary(session) {
       return item;
     }),
   );
-}
-
-function cardBack() {
-  const card = document.createElement('div');
-  card.className = 'card card-back';
-  card.setAttribute('role', 'img');
-  card.setAttribute('aria-label', TEXT.cardBack);
-  return card;
 }
 
 // Лице карти створюється заново при кожному рендері, щоб у DOM була лише поточна карта.
