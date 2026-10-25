@@ -109,8 +109,8 @@ export function render(session) {
   for (const section of document.querySelectorAll('[data-screen]')) {
     setHidden(section, section.dataset.screen !== screen);
   }
-  // Карти з інших екранів не лишаються в DOM навіть у прихованих секціях.
-  for (const slot of document.querySelectorAll('.card-slot')) {
+  // Карти з інших екранів (зокрема список помилок минулого підсумку) не лишаються в DOM навіть у прихованих секціях.
+  for (const slot of document.querySelectorAll('.card-slot, #summary-errors')) {
     slot.replaceChildren();
   }
   if (screen === 'layout') renderLayout(session);
